@@ -40,8 +40,12 @@ canvas { display: block; }
 .welcome-subtitle { font-size: 13px; color: #888; margin-bottom: 26px; letter-spacing: 0.5px; }
 .welcome-question {
   font-size: 18px; font-weight: 700; color: #fff;
-  line-height: 1.4; margin-bottom: 28px;
+  line-height: 1.4; margin-bottom: 14px;
   padding: 0 4px;
+}
+.welcome-note {
+  font-size: 13px; color: #bbb; line-height: 1.5;
+  margin-bottom: 22px; padding: 0 4px;
 }
 .welcome-question em { font-style: normal; color: #4ecdc4; }
 .yn-row { display: flex; gap: 14px; justify-content: center; }
@@ -122,11 +126,11 @@ canvas { display: block; }
 .play-heading { font-size: 12px; letter-spacing: 2px; color: #f0c040; text-transform: uppercase; margin-bottom: 16px; font-weight: 700; }
 .play-cards { display: flex; flex-direction: column; gap: 10px; }
 .play-card {
-  background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1);
+  background: rgba(10,10,30,0.82); border: 1.5px solid rgba(255,255,255,0.2);
   border-radius: 14px; padding: 15px 16px; cursor: pointer; display: flex; align-items: center; gap: 14px;
   transition: background 0.15s, border-color 0.15s, transform 0.1s;
 }
-.play-card:hover { background: rgba(255,255,255,0.09); border-color: rgba(240,192,64,0.5); }
+.play-card:hover { background: rgba(20,20,50,0.92); border-color: rgba(240,192,64,0.6); }
 .play-card:active { transform: scale(0.98); }
 .play-emoji { font-size: 26px; width: 38px; text-align: center; flex-shrink: 0; }
 .play-info { text-align: left; }
@@ -253,6 +257,7 @@ canvas { display: block; }
     <div class="welcome-question">
       <em>Tato</em>, ¿estás listo para<br>ayudar a Messi a ganar el partido?!
     </div>
+    <div class="welcome-note">Tato, tenemos tres chances de ganar este partido para Argentina. ¡Ayudame a armar los goles contra Austria!</div>
     <div class="yn-row">
       <button class="yn-btn yn-yes" onclick="answerYes()">🙌 ¡Sí!</button>
       <button class="yn-btn yn-no"  onclick="answerNo()">No...</button>
@@ -303,7 +308,7 @@ canvas { display: block; }
       <div class="play-card" onclick="selectPlay(2)">
         <div class="play-emoji">💥</div>
         <div class="play-info">
-          <div class="play-name">Wall Pass & Fire</div>
+          <div class="play-name">Quick 1-2</div>
           <div class="play-desc">Quick one-two, Messi pulls the trigger</div>
           <div class="play-tag tag-power">POWER</div>
         </div>
