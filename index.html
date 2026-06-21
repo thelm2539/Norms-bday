@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Argentina vs Austria · World Cup 2026</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a14; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+canvas { display: block; }
+
+#overlay {
+  position: fixed; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; pointer-events: none;
+}
+.panel {
+  pointer-events: all; text-align: center;
+  animation: fadeIn 0.4s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* ── WELCOME SCREEN ─────────────────────────────────────────── */
+#welcomePanel {
+  color: #fff;
+  max-width: 380px; width: 92vw;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 36px 28px 32px;
+}
+.wc-flag-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 14px; }
+.flag { font-size: 36px; }
+.wc-trophy { font-size: 28px; }
+.welcome-title {
+  font-size: 26px; font-weight: 900; line-height: 1.15; margin-bottom: 4px;
+  background: linear-gradient(135deg, #f0c040, #fff 60%, #74b9e0);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.welcome-subtitle { font-size: 13px; color: #888; margin-bottom: 26px; letter-spacing: 0.5px; }
+.welcome-question {
+  font-size: 18px; font-weight: 700; color: #fff;
+  line-height: 1.4; margin-bottom: 28px;
+  padding: 0 4px;
+}
+.welcome-question em { font-style: normal; color: #4ecdc4; }
+.yn-row { display: flex; gap: 14px; justify-content: center; }
+.yn-btn {
+  flex: 1; max-width: 130px; padding: 16px 0; border: none; border-radius: 18px;
+  font-size: 18px; font-weight: 800; cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.15s;
+}
+.yn-btn:active { transform: scale(0.95); }
+.yn-yes { background: #27ae60; color: #fff; box-shadow: 0 4px 18px rgba(39,174,96,0.4); }
+.yn-no  { background: rgba(255,255,255,0.08); color: #aaa; border: 1.5px solid rgba(255,255,255,0.15); }
+.yn-yes:hover { box-shadow: 0 6px 24px rgba(39,174,96,0.55); }
+
+/* no-response bubble */
+#noBubble {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.7); z-index: 200; animation: fadeIn 0.25s ease;
+}
+#noBubble .bubble-box {
+  background: #1a1a2e; border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: 20px; padding: 32px 28px; max-width: 320px; width: 88vw; text-align: center; color: #fff;
+}
+.bubble-box .bubble-emoji { font-size: 52px; margin-bottom: 14px; }
+.bubble-box p { font-size: 16px; line-height: 1.5; margin-bottom: 22px; color: #ccc; }
+.bubble-box button {
+  background: #f0c040; color: #0a0a14; border: none; border-radius: 20px;
+  padding: 14px 40px; font-size: 16px; font-weight: 800; cursor: pointer;
+}
+
+/* ── TITLE (match screen) ───────────────────────────────────── */
+#titlePanel {
+  color: #fff; max-width: 360px; width: 92vw;
+  background: rgba(0,0,0,0.68); backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 24px;
+  padding: 32px 24px 28px;
+}
+.wc-label { font-size: 10px; letter-spacing: 3px; color: #f0c040; text-transform: uppercase; margin-bottom: 10px; }
+.match-title { font-size: 40px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
+.match-title .arg { color: #74b9e0; }
+.match-title .aut { color: #dd2222; }
+.match-title .vs  { color: #555; font-size: 20px; }
+.venue { font-size: 11px; color: #666; margin-bottom: 24px; }
+.duo-row { display: flex; gap: 24px; align-items: center; justify-content: center; margin-bottom: 28px; }
+.duo-card { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.duo-avatar { width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; border: 3px solid; }
+.duo-avatar.messi { background: linear-gradient(135deg,#74b9e0,#2980b9); border-color: #74b9e0; color: #fff; }
+.duo-avatar.tato  { background: linear-gradient(135deg,#4ecdc4,#1a9e96); border-color: #4ecdc4; color: #fff; }
+.duo-name { font-size: 12px; color: #aaa; font-weight: 600; }
+.duo-plus { font-size: 22px; color: #f0c040; font-weight: 900; }
+.kickoff-btn {
+  background: #f0c040; color: #0a0a14; border: none; border-radius: 26px;
+  padding: 15px 50px; font-size: 17px; font-weight: 800; cursor: pointer;
+  letter-spacing: 1px; box-shadow: 0 4px 20px rgba(240,192,64,0.4);
+  transition: transform 0.12s;
+}
+.kickoff-btn:active { transform: scale(0.96); }
+
+/* ── HUD ─────────────────────────────────────────────────────── */
+#hud {
+  position: fixed; top: 0; left: 0; right: 0; height: 52px;
+  background: rgba(0,0,0,0.82); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; z-index: 50; pointer-events: none;
+}
+.hud-team { display: flex; flex-direction: column; align-items: center; }
+.hud-name { font-size: 10px; color: #888; font-weight: 600; letter-spacing: 1px; }
+.hud-score { font-size: 26px; font-weight: 900; }
+.hud-score.arg { color: #74b9e0; }
+.hud-score.aut { color: #dd2222; }
+.hud-mid { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.hud-attacks { display: flex; gap: 5px; }
+.hud-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; transition: background 0.3s; }
+.hud-dot.done { background: #f0c040; }
+.hud-label { font-size: 9px; color: #555; letter-spacing: 1px; }
+
+/* ── PLAY SELECT ─────────────────────────────────────────────── */
+#playPanel { color: #fff; width: 340px; max-width: 94vw; }
+.play-heading { font-size: 12px; letter-spacing: 2px; color: #f0c040; text-transform: uppercase; margin-bottom: 16px; font-weight: 700; }
+.play-cards { display: flex; flex-direction: column; gap: 10px; }
+.play-card {
+  background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 14px; padding: 15px 16px; cursor: pointer; display: flex; align-items: center; gap: 14px;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+.play-card:hover { background: rgba(255,255,255,0.09); border-color: rgba(240,192,64,0.5); }
+.play-card:active { transform: scale(0.98); }
+.play-emoji { font-size: 26px; width: 38px; text-align: center; flex-shrink: 0; }
+.play-info { text-align: left; }
+.play-name { font-size: 14px; font-weight: 700; color: #fff; }
+.play-desc { font-size: 11px; color: #888; margin-top: 2px; }
+.play-tag { font-size: 9px; font-weight: 700; letter-spacing: 1px; padding: 2px 7px; border-radius: 6px; margin-top: 4px; display: inline-block; }
+.tag-power { background: rgba(231,76,60,0.25); color: #e74c3c; }
+.tag-skill  { background: rgba(52,152,219,0.25); color: #3498db; }
+.tag-combo  { background: rgba(240,192,64,0.25); color: #f0c040; }
+
+/* ── SHOOT ───────────────────────────────────────────────────── */
+#shootPanel { color: #fff; }
+.shoot-prompt { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+.shoot-sub { font-size: 12px; color: #888; margin-bottom: 20px; }
+.power-wrap { width: 280px; max-width: 90vw; }
+.power-track { height: 22px; background: rgba(255,255,255,0.1); border-radius: 11px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15); }
+.power-fill { height: 100%; width: 0%; border-radius: 11px; background: linear-gradient(90deg,#27ae60,#f0c040,#e74c3c); }
+.power-labels { display: flex; justify-content: space-between; margin-top: 5px; }
+.power-label { font-size: 9px; color: #555; }
+.aim-row { display: flex; gap: 12px; margin-top: 18px; justify-content: center; }
+.aim-btn {
+  width: 58px; height: 58px; border-radius: 12px; background: rgba(255,255,255,0.07);
+  border: 1.5px solid rgba(255,255,255,0.15); cursor: pointer; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px; font-size: 10px; color: #aaa;
+  transition: background 0.12s, border-color 0.12s;
+}
+.aim-btn.selected { background: rgba(240,192,64,0.2); border-color: #f0c040; color: #f0c040; }
+.aim-btn:active { transform: scale(0.94); }
+.aim-btn span { font-size: 20px; }
+.shoot-btn {
+  margin-top: 20px; background: #e74c3c; color: #fff; border: none; border-radius: 24px;
+  padding: 16px 52px; font-size: 17px; font-weight: 800; cursor: pointer; letter-spacing: 1px;
+  box-shadow: 0 4px 18px rgba(231,76,60,0.4); pointer-events: all;
+}
+.shoot-btn:active { transform: scale(0.95); }
+
+/* ── RESULT ──────────────────────────────────────────────────── */
+#resultPanel { color: #fff; }
+.result-title { font-size: 42px; font-weight: 900; margin-bottom: 8px; }
+.result-score { font-size: 20px; color: #aaa; margin-bottom: 6px; }
+.result-msg { font-size: 13px; color: #666; margin-bottom: 28px; }
+.result-btns { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.btn-primary { background: #f0c040; color: #0a0a14; border: none; border-radius: 22px; padding: 13px 46px; font-size: 15px; font-weight: 800; cursor: pointer; }
+.btn-ghost { background: transparent; color: #888; border: 1.5px solid #333; border-radius: 22px; padding: 11px 38px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+/* ── BIRTHDAY SCREEN ─────────────────────────────────────────── */
+#birthdayPanel {
+  color: #fff; max-width: 400px; width: 92vw;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(16px);
+  border: 2px solid rgba(240,192,64,0.4); border-radius: 28px;
+  padding: 36px 28px 34px; position: relative; overflow: hidden;
+}
+.bday-glow {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 0%, rgba(240,192,64,0.15) 0%, transparent 70%);
+}
+.bday-emoji-row { font-size: 40px; margin-bottom: 16px; letter-spacing: 4px; }
+.bday-title {
+  font-size: 30px; font-weight: 900; line-height: 1.2; margin-bottom: 8px;
+  background: linear-gradient(135deg, #f0c040, #fff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.bday-anos { font-size: 18px; color: #4ecdc4; font-weight: 700; margin-bottom: 20px; }
+.bday-divider { width: 60px; height: 2px; background: linear-gradient(90deg,transparent,#f0c040,transparent); margin: 0 auto 20px; }
+.bday-msg { font-size: 15px; color: #ddd; line-height: 1.6; margin-bottom: 10px; }
+.bday-signers { font-size: 17px; font-weight: 700; color: #f0c040; margin-bottom: 28px; line-height: 1.5; }
+.bday-play-again {
+  background: #f0c040; color: #0a0a14; border: none; border-radius: 22px;
+  padding: 14px 44px; font-size: 16px; font-weight: 800; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(240,192,64,0.4);
+}
+
+/* float message */
+#floatMsg {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 44px; font-weight: 900; color: #f0c040;
+  text-shadow: 0 3px 12px rgba(0,0,0,0.9);
+  pointer-events: none; opacity: 0; z-index: 99;
+  transition: opacity 0.25s; white-space: nowrap;
+}
+#floatMsg.show { opacity: 1; }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<!-- NO-RESPONSE BUBBLE (hidden by default) -->
+<div id="noBubble" class="hidden">
+  <div class="bubble-box">
+    <div class="bubble-emoji">😤⚽</div>
+    <p>Tato… <strong>Messi te necesita</strong>.<br>¡No hay excusas! La Argentina te llama!</p>
+    <button onclick="dismissNo()">¡Bueno, vamos! 🇦🇷</button>
+  </div>
+</div>
+
+<div id="hud" class="hidden">
+  <div class="hud-team">
+    <div class="hud-name">ARG</div>
+    <div class="hud-score arg" id="sArg">0</div>
+  </div>
+  <div class="hud-mid">
+    <div class="hud-attacks" id="dots"></div>
+    <div class="hud-label">ATTACKS</div>
+  </div>
+  <div class="hud-team">
+    <div class="hud-name">AUT</div>
+    <div class="hud-score aut" id="sAut">0</div>
+  </div>
+</div>
+
+<div id="overlay">
+
+  <!-- WELCOME -->
+  <div id="welcomePanel" class="panel">
+    <div class="wc-flag-row">
+      <span class="flag">🇦🇷</span>
+      <span class="wc-trophy">🏆</span>
+      <span class="flag">🇦🇹</span>
+    </div>
+    <div class="welcome-title">Welcome to the<br>2026 World Cup</div>
+    <div class="welcome-subtitle">Argentina vs Austria · MetLife Stadium</div>
+    <div class="welcome-question">
+      <em>Tato</em>, ¿estás listo para<br>ayudar a Messi a ganar el partido?!
+    </div>
+    <div class="yn-row">
+      <button class="yn-btn yn-yes" onclick="answerYes()">🙌 ¡Sí!</button>
+      <button class="yn-btn yn-no"  onclick="answerNo()">No...</button>
+    </div>
+  </div>
+
+  <!-- TITLE / MATCH INTRO -->
+  <div id="titlePanel" class="panel hidden">
+    <div class="wc-label">FIFA World Cup 2026</div>
+    <div class="match-title">
+      <span class="arg">ARG</span> <span class="vs">vs</span> <span class="aut">AUT</span>
+    </div>
+    <div class="venue">Group Stage · MetLife Stadium, New Jersey</div>
+    <div class="duo-row">
+      <div class="duo-card">
+        <div class="duo-avatar messi">M</div>
+        <div class="duo-name">Messi</div>
+      </div>
+      <div class="duo-plus">+</div>
+      <div class="duo-card">
+        <div class="duo-avatar tato">T</div>
+        <div class="duo-name">Tato</div>
+      </div>
+    </div>
+    <button class="kickoff-btn" onclick="startGame()">⚽ KICK OFF</button>
+  </div>
+
+  <!-- PLAY SELECT -->
+  <div id="playPanel" class="panel hidden">
+    <div class="play-heading">Pick your play</div>
+    <div class="play-cards">
+      <div class="play-card" onclick="selectPlay(0)">
+        <div class="play-emoji">🎯</div>
+        <div class="play-info">
+          <div class="play-name">Tato's Through Ball</div>
+          <div class="play-desc">Tato threads a perfect pass, Messi one-on-one</div>
+          <div class="play-tag tag-combo">COMBO</div>
+        </div>
+      </div>
+      <div class="play-card" onclick="selectPlay(1)">
+        <div class="play-emoji">⚡</div>
+        <div class="play-info">
+          <div class="play-name">Messi Solo Run</div>
+          <div class="play-desc">Messi beats two defenders, Tato finishes</div>
+          <div class="play-tag tag-skill">SKILL</div>
+        </div>
+      </div>
+      <div class="play-card" onclick="selectPlay(2)">
+        <div class="play-emoji">💥</div>
+        <div class="play-info">
+          <div class="play-name">Wall Pass & Fire</div>
+          <div class="play-desc">Quick one-two, Messi pulls the trigger</div>
+          <div class="play-tag tag-power">POWER</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHOOT -->
+  <div id="shootPanel" class="panel hidden">
+    <div class="shoot-prompt" id="shootTitle">SHOOT!</div>
+    <div class="shoot-sub">Aim, then hold to charge</div>
+    <div class="aim-row">
+      <div class="aim-btn" id="aim-tl" onclick="setAim('tl')"><span>↖️</span>Top Left</div>
+      <div class="aim-btn" id="aim-tc" onclick="setAim('tc')"><span>⬆️</span>Centre</div>
+      <div class="aim-btn" id="aim-tr" onclick="setAim('tr')"><span>↗️</span>Top Right</div>
+    </div>
+    <div class="power-wrap">
+      <div class="power-track"><div class="power-fill" id="pwrBar"></div></div>
+      <div class="power-labels">
+        <span class="power-label">WEAK</span>
+        <span class="power-label">PERFECT</span>
+        <span class="power-label">TOO MUCH</span>
+      </div>
+    </div>
+    <button class="shoot-btn" onpointerdown="startCharge()" onpointerup="releaseShot()">
+      HOLD TO CHARGE
+    </button>
+  </div>
+
+  <!-- MATCH RESULT -->
+  <div id="resultPanel" class="panel hidden">
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-score" id="resultScore"></div>
+    <div class="result-msg" id="resultMsg"></div>
+    <div class="result-btns">
+      <button class="btn-primary" onclick="startGame()">Play Again</button>
+      <button class="btn-ghost" onclick="goWelcome()">Main Menu</button>
+    </div>
+  </div>
+
+  <!-- BIRTHDAY CELEBRATION -->
+  <div id="birthdayPanel" class="panel hidden">
+    <div class="bday-glow"></div>
+    <div class="bday-emoji-row">🎂🎉⚽🇦🇷🎊</div>
+    <div class="bday-title">¡Feliz Cumpleaños<br>Tato!</div>
+    <div class="bday-anos">🎈 59 años de celebración 🎈</div>
+    <div class="bday-divider"></div>
+    <div class="bday-signers">
+      Con cariño:<br>
+      Marce, Amy, Alana,<br>Oriana y Nala 🐾
+    </div>
+    <button class="bday-play-again" onclick="goWelcome()">🔄 Jugar de nuevo</button>
+  </div>
+
+</div>
+
+<div id="floatMsg"></div>
+
+<script>
+// ─── Canvas ──────────────────────────────────────────────────────────────────
+const C = document.getElementById('c');
+const cx = C.getContext('2d');
+let W, H;
+function resize() { W = C.width = window.innerWidth; H = C.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+// ─── Global state ────────────────────────────────────────────────────────────
+let phase = 'welcome';
+let sArg = 0, sAut = 0, attacks = 0;
+const MAX_ATTACKS = 3;
+let chosenPlay = 0;
+let aim = 'tc';
+let chargeId = null, power = 0, chargeDir = 1;
+let tick = 0;
+let goalScored = false; // track if any goal was scored this match
+
+// ─── Panel router ────────────────────────────────────────────────────────────
+const ALL_PANELS = ['welcomePanel','titlePanel','playPanel','shootPanel','resultPanel','birthdayPanel'];
+function showPanel(id) {
+  ALL_PANELS.forEach(p => document.getElementById(p).classList.add('hidden'));
+  if (id) document.getElementById(id).classList.remove('hidden');
+}
+
+// ─── HUD ─────────────────────────────────────────────────────────────────────
+function showHud(on) { document.getElementById('hud').classList.toggle('hidden', !on); }
+function updateHud() {
+  document.getElementById('sArg').textContent = sArg;
+  document.getElementById('sAut').textContent = sAut;
+  const d = document.getElementById('dots');
+  d.innerHTML = '';
+  for (let i = 0; i < MAX_ATTACKS; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'hud-dot' + (i < attacks ? ' done' : '');
+    d.appendChild(dot);
+  }
+}
+
+// ─── Float message ───────────────────────────────────────────────────────────
+function floatMsg(text, dur, cb) {
+  const el = document.getElementById('floatMsg');
+  el.textContent = text; el.classList.add('show');
+  setTimeout(() => { el.classList.remove('show'); if (cb) setTimeout(cb, 250); }, dur);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CANVAS DRAWING
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── Stadium background (for welcome & title screens) ────────────────────────
+function drawStadium() {
+  // night sky
+  const sky = cx.createLinearGradient(0, 0, 0, H * 0.55);
+  sky.addColorStop(0, '#050510');
+  sky.addColorStop(1, '#0d1a3a');
+  cx.fillStyle = sky;
+  cx.fillRect(0, 0, W, H);
+
+  // stars
+  cx.fillStyle = 'rgba(255,255,255,0.7)';
+  const stars = [[0.1,0.05],[0.25,0.08],[0.4,0.03],[0.55,0.07],[0.7,0.04],[0.85,0.09],[0.92,0.06],[0.15,0.15],[0.6,0.12],[0.78,0.14],[0.33,0.18],[0.05,0.2],[0.95,0.18]];
+  stars.forEach(([sx, sy]) => {
+    cx.beginPath(); cx.arc(sx * W, sy * H, 1 + Math.random() * 0.5, 0, Math.PI * 2); cx.fill();
+  });
+
+  // stadium stands (curved silhouette) – left side
+  cx.fillStyle = '#0a1228';
+  cx.beginPath();
+  cx.moveTo(0, H * 0.55);
+  cx.bezierCurveTo(W * 0.05, H * 0.28, W * 0.25, H * 0.18, W * 0.5, H * 0.16);
+  cx.bezierCurveTo(W * 0.75, H * 0.18, W * 0.95, H * 0.28, W, H * 0.55);
+  cx.lineTo(W, 0); cx.lineTo(0, 0); cx.closePath();
+  cx.fill();
+
+  // stadium lights glow
+  const lights = [0.08, 0.92];
+  lights.forEach(lx => {
+    const g = cx.createRadialGradient(lx * W, H * 0.16, 0, lx * W, H * 0.16, W * 0.22);
+    g.addColorStop(0, 'rgba(255,240,180,0.28)');
+    g.addColorStop(1, 'rgba(255,240,180,0)');
+    cx.fillStyle = g;
+    cx.fillRect(0, 0, W, H * 0.55);
+    // light pole
+    cx.fillStyle = '#c8a820';
+    cx.fillRect(lx * W - 2, H * 0.08, 4, H * 0.12);
+    cx.fillStyle = '#ffe880';
+    cx.beginPath(); cx.arc(lx * W, H * 0.08, 6, 0, Math.PI * 2); cx.fill();
+  });
+
+  // stands rows (tiers of seats)
+  for (let row = 0; row < 6; row++) {
+    const t = row / 6;
+    const y1 = lerp(H * 0.18, H * 0.52, t);
+    const y2 = lerp(H * 0.18, H * 0.52, t + 0.14);
+    const xL = lerp(W * 0.5, 0, t * 0.9 + 0.1);
+    const xR = lerp(W * 0.5, W, t * 0.9 + 0.1);
+    // seat colour alternating
+    const colours = ['#1a2a4a','#0e1e36','#16294a','#0a1828'];
+    cx.fillStyle = colours[row % colours.length];
+    cx.beginPath(); cx.moveTo(xL, y1); cx.lineTo(xR, y1); cx.lineTo(xR + 10, y2); cx.lineTo(xL - 10, y2); cx.closePath(); cx.fill();
+    // tiny crowd dots
+    if (row > 1) {
+      for (let i = 0; i < 60; i++) {
+        const dx = xL + Math.random() * (xR - xL);
+        const dy = y1 + Math.random() * (y2 - y1);
+        cx.fillStyle = `hsl(${Math.random()*360},60%,${40 + Math.random()*30}%)`;
+        cx.beginPath(); cx.arc(dx, dy, 1.5, 0, Math.PI * 2); cx.fill();
+      }
+    }
+  }
+
+  // pitch (bottom portion of screen)
+  const pitchGrad = cx.createLinearGradient(0, H * 0.5, 0, H);
+  pitchGrad.addColorStop(0, '#1e6b30');
+  pitchGrad.addColorStop(1, '#155224');
+  cx.fillStyle = pitchGrad;
+  cx.fillRect(0, H * 0.5, W, H * 0.5);
+
+  // pitch stripes
+  cx.globalAlpha = 0.05;
+  const stripeCount = 10;
+  const stripeH = (H * 0.5) / stripeCount;
+  for (let i = 0; i < stripeCount; i++) {
+    cx.fillStyle = i % 2 === 0 ? '#000' : '#fff';
+    cx.fillRect(0, H * 0.5 + i * stripeH, W, stripeH);
+  }
+  cx.globalAlpha = 1;
+
+  // pitch lines
+  cx.strokeStyle = 'rgba(255,255,255,0.2)'; cx.lineWidth = 1.5;
+  cx.strokeRect(W * 0.08, H * 0.54, W * 0.84, H * 0.42);
+  cx.beginPath(); cx.moveTo(W * 0.08, H * 0.755); cx.lineTo(W * 0.92, H * 0.755); cx.stroke();
+  cx.beginPath(); cx.arc(W * 0.5, H * 0.755, 55, 0, Math.PI * 2); cx.stroke();
+
+  // goal at top-centre of pitch
+  const gx = W / 2, gy = H * 0.54;
+  cx.fillStyle = 'rgba(255,255,255,0.07)';
+  cx.fillRect(gx - 60, gy - 24, 120, 24);
+  cx.strokeStyle = 'rgba(255,255,255,0.5)'; cx.lineWidth = 3;
+  cx.strokeRect(gx - 60, gy - 24, 120, 24);
+}
+
+// ─── Field (gameplay view) ───────────────────────────────────────────────────
+function drawField() {
+  const grad = cx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#1e6b30');
+  grad.addColorStop(1, '#196027');
+  cx.fillStyle = grad;
+  cx.fillRect(0, 0, W, H);
+  cx.globalAlpha = 0.04;
+  const sh = H / 12;
+  for (let i = 0; i < 12; i++) {
+    cx.fillStyle = i % 2 === 0 ? '#000' : '#fff';
+    cx.fillRect(0, i * sh, W, sh);
+  }
+  cx.globalAlpha = 1;
+  cx.strokeStyle = 'rgba(255,255,255,0.22)'; cx.lineWidth = 2;
+  const pad = 24;
+  cx.strokeRect(pad, pad * 2, W - pad * 2, H - pad * 3);
+  cx.beginPath(); cx.moveTo(pad, H / 2); cx.lineTo(W - pad, H / 2); cx.stroke();
+  cx.beginPath(); cx.arc(W / 2, H / 2, 70, 0, Math.PI * 2); cx.stroke();
+  cx.beginPath(); cx.arc(W / 2, H / 2, 3, 0, Math.PI * 2);
+  cx.fillStyle = 'rgba(255,255,255,0.22)'; cx.fill();
+  cx.strokeRect(W / 2 - 85, pad * 2, 170, 85);
+  cx.strokeRect(W / 2 - 45, pad * 2, 90, 32);
+}
+
+// ─── Goal ────────────────────────────────────────────────────────────────────
+const GX = () => W / 2;
+const GY = () => 50;
+const GW = 140, GH = 44;
+
+function drawGoal(flash) {
+  const gx = GX(), gy = GY();
+  cx.fillStyle = flash ? `rgba(255,220,50,${0.25 + Math.sin(tick * 0.4) * 0.15})` : 'rgba(255,255,255,0.06)';
+  cx.fillRect(gx - GW / 2, gy - GH, GW, GH);
+  cx.strokeStyle = flash ? 'rgba(255,220,50,0.5)' : 'rgba(255,255,255,0.2)';
+  cx.lineWidth = 0.6;
+  for (let x = gx - GW / 2; x <= gx + GW / 2; x += 14) { cx.beginPath(); cx.moveTo(x, gy - GH); cx.lineTo(x, gy); cx.stroke(); }
+  for (let y = gy - GH; y <= gy; y += 11) { cx.beginPath(); cx.moveTo(gx - GW / 2, y); cx.lineTo(gx + GW / 2, y); cx.stroke(); }
+  cx.strokeStyle = '#fff'; cx.lineWidth = 4;
+  cx.strokeRect(gx - GW / 2, gy - GH, GW, GH);
+}
+
+// ─── Ball ────────────────────────────────────────────────────────────────────
+function drawBall(x, y, r = 7) {
+  cx.save();
+  cx.shadowColor = 'rgba(0,0,0,0.5)'; cx.shadowBlur = 6;
+  cx.fillStyle = '#fff'; cx.beginPath(); cx.arc(x, y, r, 0, Math.PI * 2); cx.fill();
+  cx.restore();
+  cx.strokeStyle = '#222'; cx.lineWidth = 1;
+  cx.beginPath(); cx.arc(x, y, r, 0, Math.PI * 2); cx.stroke();
+  cx.fillStyle = '#111';
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
+    cx.beginPath(); cx.arc(x + Math.cos(a) * r * 0.45, y + Math.sin(a) * r * 0.45, 1.5, 0, Math.PI * 2); cx.fill();
+  }
+}
+
+// ─── Player ──────────────────────────────────────────────────────────────────
+function drawPlayer(x, y, opts) {
+  const { shirt, skin = '#c8956c', number, legPhase = 0, celebrate = false, lean = 0, gloves = false } = opts;
+  cx.save(); cx.translate(x, y); cx.rotate(lean);
+  cx.fillStyle = 'rgba(0,0,0,0.2)';
+  cx.beginPath(); cx.ellipse(0, 22, 9, 3, 0, 0, Math.PI * 2); cx.fill();
+  if (celebrate) {
+    const lk = Math.sin(legPhase * 0.18) * 16, rk = -Math.sin(legPhase * 0.18) * 16;
+    cx.strokeStyle = '#1a1040'; cx.lineWidth = 4; cx.lineCap = 'round';
+    cx.beginPath(); cx.moveTo(-3, 8); cx.lineTo(-6 + lk, 18); cx.lineTo(-5 + lk, 24); cx.stroke();
+    cx.beginPath(); cx.moveTo(3, 8); cx.lineTo(6 + rk, 18); cx.lineTo(5 + rk, 24); cx.stroke();
+    cx.strokeStyle = '#111'; cx.lineWidth = 3;
+    cx.beginPath(); cx.moveTo(-5 + lk, 23); cx.lineTo(-8 + lk, 25); cx.stroke();
+    cx.beginPath(); cx.moveTo(5 + rk, 23); cx.lineTo(8 + rk, 25); cx.stroke();
+  } else {
+    const lk = Math.sin(legPhase) * 8, rk = -Math.sin(legPhase) * 8;
+    cx.strokeStyle = '#1a1040'; cx.lineWidth = 4; cx.lineCap = 'round';
+    cx.beginPath(); cx.moveTo(-3, 8); cx.lineTo(-5 + lk, 16); cx.lineTo(-4 + lk * 0.5, 22); cx.stroke();
+    cx.beginPath(); cx.moveTo(3, 8); cx.lineTo(5 + rk, 16); cx.lineTo(4 + rk * 0.5, 22); cx.stroke();
+    cx.strokeStyle = '#111'; cx.lineWidth = 3;
+    cx.beginPath(); cx.moveTo(-4 + lk * 0.5, 21); cx.lineTo(-7 + lk * 0.5, 23); cx.stroke();
+    cx.beginPath(); cx.moveTo(4 + rk * 0.5, 21); cx.lineTo(7 + rk * 0.5, 23); cx.stroke();
+  }
+  cx.fillStyle = shirt;
+  cx.beginPath();
+  if (cx.roundRect) cx.roundRect(-7, -2, 14, 12, 2); else cx.rect(-7, -2, 14, 12);
+  cx.fill();
+  cx.strokeStyle = 'rgba(0,0,0,0.25)'; cx.lineWidth = 0.8; cx.stroke();
+  // Argentine vertical stripes
+  if (opts.stripes) {
+    cx.save();
+    cx.beginPath();
+    if (cx.roundRect) cx.roundRect(-7, -2, 14, 12, 2); else cx.rect(-7, -2, 14, 12);
+    cx.clip();
+    cx.fillStyle = 'rgba(255,255,255,0.55)';
+    [-3, 1].forEach(sx => cx.fillRect(sx, -2, 2, 12));
+    cx.restore();
+  }
+  cx.fillStyle = opts.stripes ? 'rgba(0,30,80,0.85)' : 'rgba(255,255,255,0.9)';
+  cx.font = 'bold 6px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.fillText(number, 0, 4);
+  if (celebrate) {
+    const aw = Math.sin(legPhase * 0.14) * 8;
+    cx.strokeStyle = shirt; cx.lineWidth = 4; cx.lineCap = 'round';
+    cx.beginPath(); cx.moveTo(-7, 0); cx.lineTo(-16, -16 + aw); cx.stroke();
+    cx.beginPath(); cx.moveTo(7, 0); cx.lineTo(16, -16 - aw); cx.stroke();
+    cx.fillStyle = skin;
+    cx.beginPath(); cx.arc(-16, -16 + aw, 2.5, 0, Math.PI * 2); cx.fill();
+    cx.beginPath(); cx.arc(16, -16 - aw, 2.5, 0, Math.PI * 2); cx.fill();
+    cx.fillStyle = '#c0392b';
+    cx.beginPath(); cx.ellipse(0, -8, 2.5, 1.5, 0, 0, Math.PI * 2); cx.fill();
+  } else {
+    const ak = Math.cos(legPhase) * 6;
+    cx.strokeStyle = shirt; cx.lineWidth = 4; cx.lineCap = 'round';
+    cx.beginPath(); cx.moveTo(-7, 0); cx.lineTo(-12, -2 + ak); cx.stroke();
+    cx.beginPath(); cx.moveTo(7, 0); cx.lineTo(12, -2 - ak); cx.stroke();
+    if (gloves) {
+      cx.fillStyle = '#888';
+      cx.beginPath(); cx.arc(-12, -2 + ak, 3.5, 0, Math.PI * 2); cx.fill();
+      cx.beginPath(); cx.arc(12, -2 - ak, 3.5, 0, Math.PI * 2); cx.fill();
+    } else {
+      cx.fillStyle = skin;
+      cx.beginPath(); cx.arc(-12, -2 + ak, 2.5, 0, Math.PI * 2); cx.fill();
+      cx.beginPath(); cx.arc(12, -2 - ak, 2.5, 0, Math.PI * 2); cx.fill();
+    }
+  }
+  cx.fillStyle = skin; cx.beginPath(); cx.arc(0, -10, 7, 0, Math.PI * 2); cx.fill();
+  cx.strokeStyle = 'rgba(0,0,0,0.15)'; cx.lineWidth = 0.8; cx.stroke();
+  cx.fillStyle = '#2c1810'; cx.beginPath(); cx.arc(0, -14, 4.5, Math.PI, Math.PI * 2); cx.fill();
+  cx.restore();
+}
+function drawDefenders(legPhase) {
+  const defs = window._defenders || [];
+  defs.forEach(d => {
+    drawPlayer(d.x, d.y, { shirt: '#cc0000', skin: '#e8c8a0', number: d.num, legPhase });
+  });
+}
+function drawAustrianKeeper(kp, dive, lean) {
+  drawPlayer(kp.x, kp.y, { shirt: '#cc0000', skin: '#f0c8a0', number: '1', legPhase: dive * 3, gloves: true, lean });
+  playerLabel(kp.x, kp.y, 'Keeper');
+}
+function playerLabel(x, y, name) {
+  cx.fillStyle = 'rgba(0,0,0,0.6)';
+  if (cx.roundRect) { cx.beginPath(); cx.roundRect(x - 20, y + 26, 40, 13, 3); cx.fill(); }
+  else cx.fillRect(x - 20, y + 26, 40, 13);
+  cx.fillStyle = '#fff'; cx.font = '7px sans-serif';
+  cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.fillText(name, x, y + 32);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ANIMATION LOOP CONTROL
+// ═══════════════════════════════════════════════════════════════════════════════
+let anim = null;
+let messi = { x: 0, y: 0 }, tato = { x: 0, y: 0 };
+let keeper = { x: 0, y: 0, tx: 0, ty: 0 };
+let ball = { x: 0, y: 0 };
+let keeperDive = 0;
+
+function stopAnim() { if (anim) { cancelAnimationFrame(anim); anim = null; } }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── WELCOME ─────────────────────────────────────────────────────────────────
+function goWelcome() {
+  phase = 'welcome';
+  stopAnim();
+  showHud(false);
+  showPanel('welcomePanel');
+  function loop() {
+    tick++;
+    drawStadium();
+    if (phase === 'welcome') anim = requestAnimationFrame(loop);
+  }
+  anim = requestAnimationFrame(loop);
+}
+
+function answerYes() {
+  floatMsg('¡Vamos Tato! 🇦🇷', 1000, () => goTitle());
+}
+function answerNo() {
+  document.getElementById('noBubble').classList.remove('hidden');
+}
+function dismissNo() {
+  document.getElementById('noBubble').classList.add('hidden');
+  floatMsg('¡Sabíamos que dirías que sí! 😄', 1200, () => goTitle());
+}
+
+// ─── TITLE ───────────────────────────────────────────────────────────────────
+function goTitle() {
+  phase = 'title';
+  stopAnim();
+  showHud(false);
+  showPanel('titlePanel');
+  function loop() {
+    tick++;
+    drawField();
+    drawGoal();
+    drawPlayer(W * 0.35, H * 0.55, { shirt: '#74b9e0', number: '10', legPhase: tick * 0.06, stripes: true });
+    playerLabel(W * 0.35, H * 0.55, 'Messi');
+    drawPlayer(W * 0.65, H * 0.55, { shirt: '#74b9e0', skin: '#d4a574', number: '8', legPhase: tick * 0.06 + 1, stripes: true });
+    playerLabel(W * 0.65, H * 0.55, 'Tato');
+    drawBall(W / 2, H * 0.58);
+    if (phase === 'title') anim = requestAnimationFrame(loop);
+  }
+  anim = requestAnimationFrame(loop);
+}
+
+// ─── GAME START ──────────────────────────────────────────────────────────────
+function startGame() {
+  sArg = 0; sAut = 0; attacks = 0; goalScored = false;
+  updateHud();
+  showPlaySelect();
+}
+
+// ─── PLAY SELECT ─────────────────────────────────────────────────────────────
+function showPlaySelect() {
+  phase = 'playSelect';
+  stopAnim();
+  showHud(true); updateHud();
+  aim = 'tc';
+  showPanel('playPanel');
+  function loop() {
+    tick++;
+    drawField(); drawGoal();
+    drawPlayer(W * 0.35, H * 0.55, { shirt: '#74b9e0', number: '10', legPhase: tick * 0.05, stripes: true });
+    playerLabel(W * 0.35, H * 0.55, 'Messi');
+    drawPlayer(W * 0.65, H * 0.55, { shirt: '#74b9e0', skin: '#d4a574', number: '8', legPhase: tick * 0.05 + 1, stripes: true });
+    playerLabel(W * 0.65, H * 0.55, 'Tato');
+    // Austrian defenders idle
+    drawPlayer(W * 0.35, H * 0.3, { shirt: '#cc0000', skin: '#e8c8a0', number: '4', legPhase: tick * 0.04 });
+    drawPlayer(W * 0.65, H * 0.3, { shirt: '#cc0000', skin: '#e8c8a0', number: '5', legPhase: tick * 0.04 + 1.5 });
+    drawPlayer(W * 0.5, H * 0.18, { shirt: '#cc0000', skin: '#f0c8a0', number: '1', legPhase: 0, gloves: true });
+    if (phase === 'playSelect') anim = requestAnimationFrame(loop);
+  }
+  anim = requestAnimationFrame(loop);
+}
+
+// ─── PLAY ANIMATION ──────────────────────────────────────────────────────────
+function selectPlay(idx) {
+  chosenPlay = idx;
+  phase = 'play';
+  showPanel(null);
+  showHud(true);
+  stopAnim();
+
+  const cx2 = W / 2, cy2 = H / 2;
+  const plays = [
+    { messiStart: { x: cx2+50,y: cy2-40 }, tatoStart: { x: cx2-70,y: cy2+80 }, messiEnd: { x: cx2+20,y: cy2-100 }, tatoEnd: { x: cx2-60,y: cy2+60 }, passerIsTato: true, label: 'Tato threads it...' },
+    { messiStart: { x: cx2-80,y: cy2+70 }, tatoStart: { x: cx2+60,y: cy2-20 }, messiEnd: { x: cx2,y: cy2-60 }, tatoEnd: { x: cx2+40,y: cy2-80 }, passerIsTato: false, label: 'Messi on the run!' },
+    { messiStart: { x: cx2-40,y: cy2+50 }, tatoStart: { x: cx2+30,y: cy2 }, messiEnd: { x: cx2+10,y: cy2-60 }, tatoEnd: { x: cx2-20,y: cy2-20 }, passerIsTato: false, label: 'Quick one-two!' },
+  ];
+  const play = plays[idx];
+  messi  = { ...play.messiStart };
+  tato   = { ...play.tatoStart };
+  keeper = { x: GX(), y: GY()+20, tx: GX()+(Math.random()>0.5?50:-50), ty: GY()+20 };
+  // Austrian defenders — positioned between ARG players and goal
+  const def1x = W/2 + (Math.random()>0.5 ? 40 : -50), def1y = H*0.32;
+  const def2x = W/2 + (Math.random()>0.5 ? -30 : 55), def2y = H*0.27;
+  window._defenders = [
+    { x: def1x, y: def1y, num: '4' },
+    { x: def2x, y: def2y, num: '5' },
+  ];
+  ball   = { x: play.passerIsTato ? tato.x : messi.x, y: play.passerIsTato ? tato.y : messi.y };
+  keeperDive = 0;
+
+  let progress = 0, animPhase = 0;
+  floatMsg(play.label, 1200);
+
+  function loop() {
+    tick++;
+    drawField(); drawGoal();
+    progress += 0.022;
+
+    if (animPhase === 0) {
+      const t = ease(Math.min(progress, 1));
+      messi.x = lerp(play.messiStart.x, play.messiEnd.x, t);
+      messi.y = lerp(play.messiStart.y, play.messiEnd.y, t);
+      tato.x  = lerp(play.tatoStart.x, play.tatoEnd.x, t);
+      tato.y  = lerp(play.tatoStart.y, play.tatoEnd.y, t);
+      ball.x  = play.passerIsTato ? tato.x : messi.x;
+      ball.y  = play.passerIsTato ? tato.y : messi.y;
+      if (progress >= 1) { animPhase = 1; progress = 0; }
+    } else if (animPhase === 1) {
+      const t = Math.min(progress / 0.7, 1);
+      const from = play.passerIsTato ? { x: tato.x, y: tato.y } : { x: messi.x, y: messi.y };
+      const to   = play.passerIsTato ? { x: messi.x, y: messi.y } : { x: tato.x, y: tato.y };
+      ball.x = lerp(from.x, to.x, t);
+      ball.y = lerp(from.y, to.y, t) - 50 * Math.sin(Math.PI * t);
+      cx.beginPath(); cx.moveTo(from.x, from.y); cx.lineTo(ball.x, ball.y);
+      cx.strokeStyle = 'rgba(240,192,64,0.5)'; cx.lineWidth = 2;
+      cx.setLineDash([5, 4]); cx.stroke(); cx.setLineDash([]);
+      if (progress >= 0.7) { animPhase = 2; progress = 0; }
+    } else if (animPhase === 2) {
+      ball.x = play.passerIsTato ? messi.x : tato.x;
+      ball.y = play.passerIsTato ? messi.y : tato.y;
+      if (progress >= 0.4) { stopAnim(); showShootPhase(); return; }
+    }
+
+    drawDefenders(tick * 0.06);
+    drawPlayer(tato.x, tato.y, { shirt: '#74b9e0', skin: '#d4a574', number: '8', legPhase: tick * 0.12, stripes: true });
+    playerLabel(tato.x, tato.y, 'Tato');
+    drawPlayer(messi.x, messi.y, { shirt: '#74b9e0', number: '10', legPhase: tick * 0.1, stripes: true });
+    playerLabel(messi.x, messi.y, 'Messi');
+    drawAustrianKeeper(keeper, keeperDive, 0);
+    drawBall(ball.x, ball.y);
+    anim = requestAnimationFrame(loop);
+  }
+  anim = requestAnimationFrame(loop);
+}
+
+// ─── SHOOT SETUP ─────────────────────────────────────────────────────────────
+function showShootPhase() {
+  phase = 'shoot';
+  power = 0;
+  document.getElementById('pwrBar').style.width = '0%';
+  document.getElementById('shootTitle').textContent = `${chosenPlay === 1 ? 'Tato' : 'Messi'} shoots!`;
+  aim = 'tc';
+  ['tl','tc','tr'].forEach(k => document.getElementById('aim-' + k).classList.remove('selected'));
+  document.getElementById('aim-tc').classList.add('selected');
+  showPanel('shootPanel');
+
+  function loop() {
+    tick++;
+    drawField(); drawGoal();
+    drawDefenders(tick * 0.05);
+    drawPlayer(tato.x, tato.y, { shirt: '#74b9e0', skin: '#d4a574', number: '8', legPhase: tick * 0.08, stripes: true });
+    playerLabel(tato.x, tato.y, 'Tato');
+    drawPlayer(messi.x, messi.y, { shirt: '#74b9e0', number: '10', legPhase: tick * 0.08, stripes: true });
+    playerLabel(messi.x, messi.y, 'Messi');
+    drawAustrianKeeper(keeper, 0, 0);
+    drawBall(ball.x, ball.y);
+    if (phase === 'shoot') anim = requestAnimationFrame(loop);
+  }
+  anim = requestAnimationFrame(loop);
+}
+
+function setAim(dir) {
+  aim = dir;
+  ['tl','tc','tr'].forEach(k => document.getElementById('aim-' + k).classList.remove('selected'));
+  document.getElementById('aim-' + dir).classList.add('selected');
+}
+
+function startCharge() {
+  if (chargeId) return;
+  power = 0; chargeDir = 1;
+  const spd = 1.8;
+  function t() {
+    power += spd * chargeDir;
+    if (power >= 100) { power = 100; chargeDir = -1; }
+    if (power <= 0)   { power = 0;   chargeDir = 1; }
+    document.getElementById('pwrBar').style.width = power + '%';
+    chargeId = requestAnimationFrame(t);
+  }
+  chargeId = requestAnimationFrame(t);
+}
+
+function releaseShot() {
+  if (chargeId) { cancelAnimationFrame(chargeId); chargeId = null; }
+  const p = power;
+  const isGoal = p > 25 && p < 85;
+
+  attacks++;
+  updateHud();
+  if (isGoal) { sArg++; goalScored = true; }
+  else sAut++;
+  updateHud();
+
+  showPanel(null);
+  phase = 'shotAnim';
+  stopAnim();
+  animateShot(p, isGoal);
+}
+
+// ─── SHOT ANIMATION ──────────────────────────────────────────────────────────
+function animateShot(p, isGoal) {
+  const offsets = { tl: -55, tc: 0, tr: 55 };
+  const aimYs   = { tl: -35, tc: -30, tr: -35 };
+  const targetX = isGoal ? GX() + offsets[aim] * 0.7 + (Math.random()-0.5)*10 : GX()+(Math.random()>0.5?1:-1)*(GW/2+30);
+  const targetY = isGoal ? GY() + aimYs[aim] : GY() - 20;
+  const kDir = aim === 'tr' ? -1 : aim === 'tl' ? 1 : (Math.random()>0.5?1:-1);
+  const startX = ball.x, startY = ball.y;
+  let t = 0, netFlash = false;
+
+  function loop() {
+    tick++;
+    drawField(); drawGoal(netFlash);
+    t += 0.045;
+    const prog = Math.min(t, 1), ez = ease(prog);
+    keeper.x = keeper.tx + kDir * 55 * ez;
+    keeper.y = keeper.ty + 15 * ez;
+    keeperDive = kDir * ez * 2;
+    ball.x = lerp(startX, targetX, ez);
+    ball.y = lerp(startY, targetY, ez) - 90 * Math.sin(Math.PI * ez);
+
+    drawDefenders(tick * 0.05);
+    drawPlayer(tato.x, tato.y, { shirt: '#74b9e0', skin: '#d4a574', number: '8', legPhase: tick * 0.1, stripes: true });
+    playerLabel(tato.x, tato.y, 'Tato');
+    drawPlayer(messi.x, messi.y, { shirt: '#74b9e0', number: '10', legPhase: tick * 0.1, stripes: true });
+    playerLabel(messi.x, messi.y, 'Messi');
+    drawAustrianKeeper(keeper, keeperDive, kDir * keeperDive * 0.4);
+    drawBall(ball.x, ball.y);
+
+    if (prog < 1) { anim = requestAnimationFrame(loop); }
+    else {
+      if (isGoal) { netFlash = true; setTimeout(() => startCelebration(), 200); }
+      else {
+        floatMsg(p > 84 ? '💨 Too powerful!' : '🧤 Saved!', 1000, () => setTimeout(afterAttempt, 300));
+        anim = requestAnimationFrame(() => { drawField(); drawGoal(); drawBall(ball.x, ball.y); });
+      }
+    }
+  }
+  anim = requestAnimationFrame(loop);
+}
+
+// ─── IN-GAME CELEBRATION ─────────────────────────────────────────────────────
+let confetti = [];
+function startCelebration() {
+  phase = 'celeb';
+  stopAnim();
+  showHud(true);
+  confetti = [];
+  for (let i = 0; i < 90; i++) {
+    confetti.push({
+      x: Math.random() * W, y: -10 - Math.random() * H * 0.5,
+      vy: 2 + Math.random() * 3, vx: (Math.random()-0.5)*3,
+      size: 5 + Math.random() * 7,
+      color: ['#f0c040','#74b9e0','#fff','#cc0000','#e74c3c','#2ecc71'][Math.floor(Math.random()*6)],
+      spin: (Math.random()-0.5)*0.2, rot: Math.random()*Math.PI*2
+    });
+  }
+  const cx2 = W / 2;
+  let celebT = 0;
+
+  function loop() {
+    tick++; celebT++;
+    drawField(); drawGoal(true);
+    confetti.forEach(c => {
+      c.y += c.vy; c.x += c.vx; c.rot += c.spin;
+      if (c.y > H + 10) c.y = -10;
+      cx.save(); cx.translate(c.x, c.y); cx.rotate(c.rot);
+      cx.fillStyle = c.color;
+      cx.fillRect(-c.size/2, -c.size/4, c.size, c.size/2);
+      cx.restore();
+    });
+    const jumpH = Math.abs(Math.sin(celebT * 0.12)) * 45;
+    const spread = Math.min(celebT * 1.2, 38);
+    drawPlayer(cx2 - spread, H/2+30 - jumpH, { shirt: '#74b9e0', number: '10', legPhase: celebT, celebrate: true, lean: -Math.sin(celebT*0.08)*0.15, stripes: true });
+    playerLabel(cx2 - spread, H/2+30 - jumpH, 'Messi');
+    drawPlayer(cx2 + spread, H/2+30 - jumpH*0.9, { shirt: '#74b9e0', skin: '#d4a574', number: '8', legPhase: celebT+2, celebrate: true, lean: Math.sin(celebT*0.08)*0.15, stripes: true });
+    playerLabel(cx2 + spread, H/2+30 - jumpH*0.9, 'Tato');
+
+    const scale = 1 + Math.sin(celebT * 0.15) * 0.07;
+    cx.save(); cx.translate(W/2, H/2-80); cx.scale(scale, scale);
+    cx.font = 'bold 62px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.shadowColor = '#f0c040'; cx.shadowBlur = 30;
+    cx.fillStyle = '#f0c040'; cx.fillText('⚽ GOAL!', 0, 0);
+    cx.shadowBlur = 0;
+    cx.font = 'bold 18px sans-serif'; cx.fillStyle = '#fff';
+    cx.fillText('¡Argentina anota! 🇦🇷', 0, 52);
+    cx.restore();
+
+    if (phase === 'celeb') anim = requestAnimationFrame(loop);
+  }
+  anim = requestAnimationFrame(loop);
+  setTimeout(() => afterAttempt(), 3000);
+}
+
+// ─── AFTER ATTEMPT ───────────────────────────────────────────────────────────
+function afterAttempt() {
+  phase = 'idle';
+  stopAnim();
+  if (attacks >= MAX_ATTACKS) {
+    setTimeout(showResult, 400);
+  } else {
+    setTimeout(showPlaySelect, 300);
+  }
+}
+
+// ─── MATCH RESULT ────────────────────────────────────────────────────────────
+function showResult() {
+  phase = 'result';
+  stopAnim();
+  showHud(true);
+  drawField(); drawGoal();
+
+  // If they scored at least one goal → show birthday screen instead of plain result
+  if (goalScored) {
+    setTimeout(() => showBirthday(), 500);
+    return;
+  }
+
+  showPanel('resultPanel');
+  const win = sArg > sAut, draw = sArg === sAut;
+  document.getElementById('resultTitle').textContent = win ? '🏆 ¡Victoria!' : draw ? '🤝 Empate' : '😤 Derrota';
+  document.getElementById('resultScore').textContent = `ARG ${sArg} – ${sAut} AUT`;
+  document.getElementById('resultMsg').textContent = win ? '¡Messi y Tato iluminan MetLife!'
+    : draw ? 'Austria se defiende bien — ¡otra vez!'
+    : 'Austria aguanta — ¡hay que intentarlo de nuevo!';
+}
+
+// ─── BIRTHDAY SCREEN ─────────────────────────────────────────────────────────
+let bdayConfetti = [];
+function showBirthday() {
+  phase = 'birthday';
+  stopAnim();
+  showHud(false);
+  showPanel('birthdayPanel');
+
+  bdayConfetti = [];
+  for (let i = 0; i < 120; i++) {
+    bdayConfetti.push({
+      x: Math.random() * W, y: -20 - Math.random() * H * 0.6,
+      vy: 1.5 + Math.random() * 2.5, vx: (Math.random()-0.5)*2.5,
+      size: 6 + Math.random() * 8,
+      color: ['#f0c040','#74b9e0','#fff','#4ecdc4','#e74c3c','#ff69b4','#2ecc71','#ff9900'][Math.floor(Math.random()*8)],
+      spin: (Math.random()-0.5)*0.25, rot: Math.random()*Math.PI*2
+    });
+  }
+
+  function loop() {
+    tick++;
+    drawStadium();
+    bdayConfetti.forEach(c => {
+      c.y += c.vy; c.x += c.vx; c.rot += c.spin;
+      if (c.y > H + 10) c.y = -20;
+      cx.save(); cx.translate(c.x, c.y); cx.rotate(c.rot);
+      cx.fillStyle = c.color;
+      cx.fillRect(-c.size/2, -c.size/4, c.size, c.size/2);
+      cx.restore();
+    });
+    if (phase === 'birthday') anim = requestAnimationFrame(loop);
+  }
+  anim = requestAnimationFrame(loop);
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function lerp(a, b, t) { return a + (b-a)*t; }
+function ease(t) { return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2; }
+
+// ─── BOOT ────────────────────────────────────────────────────────────────────
+goWelcome();
+</script>
+</body>
+</html>
